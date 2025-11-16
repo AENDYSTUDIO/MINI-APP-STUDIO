@@ -6,51 +6,49 @@ const FeaturedSection = () => {
       title: "Neon Lights",
       artist: "DJ Electric",
       duration: "3:45",
-      coverColor: "hsl(326, 100%, 74%)",
+      coverColor: "hsl(207, 100%, 50%)",
     },
     {
       title: "Midnight Rave",
       artist: "Bass Master",
       duration: "4:20",
-      coverColor: "hsl(280, 80%, 60%)",
+      coverColor: "hsl(207, 80%, 45%)",
     },
     {
       title: "Digital Dreams",
       artist: "Synth Wave",
       duration: "3:15",
-      coverColor: "hsl(195, 100%, 50%)",
+      coverColor: "hsl(207, 90%, 55%)",
     },
     {
       title: "Urban Pulse",
       artist: "City Beats",
       duration: "4:05",
-      coverColor: "hsl(326, 100%, 64%)",
+      coverColor: "hsl(207, 85%, 48%)",
     },
     {
       title: "Energy Flow",
       artist: "Rhythm Nation",
       duration: "3:55",
-      coverColor: "hsl(280, 70%, 55%)",
+      coverColor: "hsl(207, 95%, 52%)",
     },
     {
       title: "Cosmic Dance",
       artist: "Space Grooves",
       duration: "4:30",
-      coverColor: "hsl(195, 90%, 45%)",
+      coverColor: "hsl(207, 88%, 47%)",
     },
   ];
 
   return (
-    <section className="py-16 px-4">
-      <div className="container mx-auto">
-        <h2 className="mb-8 text-3xl font-bold text-foreground md:text-4xl">
-          Популярные треки
-        </h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {tracks.map((track, index) => (
-            <TrackCard key={index} {...track} />
-          ))}
-        </div>
+    <section className="px-4 pb-6">
+      <h2 className="mb-3 text-xl font-semibold">
+        Популярные треки
+      </h2>
+      <div className="space-y-2">
+        {tracks.map((track, index) => (
+          <TrackCard key={index} {...track} />
+        ))}
       </div>
     </section>
   );
