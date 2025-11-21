@@ -9,7 +9,7 @@ import UploadTrack from "@/components/UploadTrack";
 import TrackCard from "@/components/TrackCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface Track {
   id: string;
@@ -21,6 +21,7 @@ interface Track {
 }
 
 const Index = () => {
+  const { toast } = useToast();
   const { loading: telegramLoading } = useTelegramAuth();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
