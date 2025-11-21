@@ -6,9 +6,10 @@ interface TrackCardProps {
   artist: string;
   duration: string;
   coverColor: string;
+  onFavoriteClick?: () => void;
 }
 
-const TrackCard = ({ title, artist, duration, coverColor }: TrackCardProps) => {
+const TrackCard = ({ title, artist, duration, coverColor, onFavoriteClick }: TrackCardProps) => {
   return (
     <div className="telegram-card flex items-center gap-3 p-3 transition-all active:scale-98">
       <div
@@ -32,6 +33,10 @@ const TrackCard = ({ title, artist, duration, coverColor }: TrackCardProps) => {
           variant="ghost"
           size="icon"
           className="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary"
+          onClick={(e) => {
+            e.stopPropagation();
+            onFavoriteClick?.();
+          }}
         >
           <Heart className="h-4 w-4" />
         </Button>
