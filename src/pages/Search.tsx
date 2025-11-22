@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
-import HeroSection from "@/components/HeroSection";
-import StatsSection from "@/components/StatsSection";
 import BottomNav from "@/components/BottomNav";
 import MusicPlayer from "@/components/MusicPlayer";
-import UploadTrack from "@/components/UploadTrack";
 import TrackCard from "@/components/TrackCard";
 import { supabase } from "@/integrations/supabase/client";
-import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { Input } from "@/components/ui/input";
+import { Search as SearchIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Track {
@@ -19,32 +17,31 @@ interface Track {
   cover_color: string;
 }
 
-const Index = () => {
+const Search = () => {
   const { toast } = useToast();
-  const { loading: telegramLoading } = useTelegramAuth();
+  const [searchQuery, setSearchQuery] = useState("");
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    checkUser();
     loadTracks();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => subscription.unsubscribe();
   }, []);
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredTracks(tracks);
+    } else {
+      const filtered = tracks.filter(
+        (track) =>
+          track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          track.artist.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredTracks(filtered);
+    }
+  }, [searchQuery, tracks]);
 
   const loadTracks = async () => {
     try {
@@ -55,6 +52,7 @@ const Index = () => {
 
       if (error) throw error;
       setTracks(data || []);
+      setFilteredTracks(data || []);
     } catch (error: any) {
       console.error("Load tracks error:", error);
     } finally {
@@ -68,9 +66,9 @@ const Index = () => {
   };
 
   const handleNext = () => {
-    if (currentTrackIndex < tracks.length - 1) {
+    if (currentTrackIndex < filteredTracks.length - 1) {
       const nextIndex = currentTrackIndex + 1;
-      setCurrentTrack(tracks[nextIndex]);
+      setCurrentTrack(filteredTracks[nextIndex]);
       setCurrentTrackIndex(nextIndex);
     }
   };
@@ -78,7 +76,7 @@ const Index = () => {
   const handlePrevious = () => {
     if (currentTrackIndex > 0) {
       const prevIndex = currentTrackIndex - 1;
-      setCurrentTrack(tracks[prevIndex]);
+      setCurrentTrack(filteredTracks[prevIndex]);
       setCurrentTrackIndex(prevIndex);
     }
   };
@@ -133,45 +131,43 @@ const Index = () => {
     }
   };
 
-  if (telegramLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Загрузка...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background pb-32">
       <Header />
-      <main className="pt-4">
-        <HeroSection />
-        
-        <section className="px-4 pb-6">
-          {user && (
-            <div className="mb-4">
-              <UploadTrack onUploadComplete={loadTracks} />
-            </div>
-          )}
-          
+      
+      <main className="pt-4 px-4">
+        <div className="mb-6 max-w-2xl mx-auto">
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Поиск треков или исполнителей..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12 text-base"
+            />
+          </div>
+        </div>
+
+        <section className="max-w-2xl mx-auto">
           <h2 className="mb-3 text-xl font-semibold">
-            Все треки
+            {searchQuery ? `Результаты поиска (${filteredTracks.length})` : 'Все треки'}
           </h2>
           
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             </div>
-          ) : tracks.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Треков пока нет. {user && "Загрузите первый!"}
+          ) : filteredTracks.length === 0 ? (
+            <div className="text-center py-12">
+              <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                {searchQuery ? "Ничего не найдено" : "Треков пока нет"}
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
-              {tracks.map((track, index) => (
+              {filteredTracks.map((track, index) => (
                 <div
                   key={track.id}
                   onClick={() => handlePlayTrack(track, index)}
@@ -189,9 +185,8 @@ const Index = () => {
             </div>
           )}
         </section>
-        
-        <StatsSection />
       </main>
+
       <BottomNav />
       <MusicPlayer
         currentTrack={currentTrack}
@@ -202,4 +197,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Search;
