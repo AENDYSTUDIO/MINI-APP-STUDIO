@@ -19,6 +19,7 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   const handleUpload = async () => {
     if (!file || !title || !artist) {
@@ -51,6 +52,24 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
         .from('tracks')
         .getPublicUrl(filePath);
 
+      // Upload cover if provided
+      let coverUrl = null;
+      if (coverFile) {
+        const coverExt = coverFile.name.split('.').pop();
+        const coverPath = `${user.id}/cover_${Date.now()}.${coverExt}`;
+        
+        const { error: coverError } = await supabase.storage
+          .from('covers')
+          .upload(coverPath, coverFile);
+
+        if (!coverError) {
+          const { data: { publicUrl: coverPublicUrl } } = supabase.storage
+            .from('covers')
+            .getPublicUrl(coverPath);
+          coverUrl = coverPublicUrl;
+        }
+      }
+
       // Get audio duration
       const audio = new Audio();
       audio.src = URL.createObjectURL(file);
@@ -71,6 +90,7 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
           duration: Math.floor(audio.duration),
           file_path: publicUrl,
           cover_color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+          cover_url: coverUrl,
         });
 
       if (insertError) throw insertError;
@@ -83,6 +103,7 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
       setTitle("");
       setArtist("");
       setFile(null);
+      setCoverFile(null);
       setOpen(false);
       onUploadComplete?.();
     } catch (error: any) {
@@ -135,6 +156,15 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
               type="file"
               accept="audio/*"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="cover">Обложка (опционально)</Label>
+            <Input
+              id="cover"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
             />
           </div>
           <Button

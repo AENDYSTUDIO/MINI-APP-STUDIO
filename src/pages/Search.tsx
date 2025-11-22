@@ -5,6 +5,7 @@ import MusicPlayer from "@/components/MusicPlayer";
 import TrackCard from "@/components/TrackCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search as SearchIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +16,7 @@ interface Track {
   duration: number;
   file_path: string;
   cover_color: string;
+  cover_url: string | null;
 }
 
 const Search = () => {
@@ -25,23 +27,44 @@ const Search = () => {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<string>("newest");
 
   useEffect(() => {
     loadTracks();
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredTracks(tracks);
-    } else {
-      const filtered = tracks.filter(
+    let filtered = tracks;
+
+    // Apply search filter
+    if (searchQuery.trim() !== "") {
+      filtered = filtered.filter(
         (track) =>
           track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           track.artist.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredTracks(filtered);
     }
-  }, [searchQuery, tracks]);
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return 0; // Already sorted by created_at desc
+        case "oldest":
+          return -1;
+        case "title":
+          return a.title.localeCompare(b.title);
+        case "artist":
+          return a.artist.localeCompare(b.artist);
+        case "duration":
+          return a.duration - b.duration;
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredTracks(sorted);
+  }, [searchQuery, tracks, sortBy]);
 
   const loadTracks = async () => {
     try {
@@ -136,7 +159,7 @@ const Search = () => {
       <Header />
       
       <main className="pt-4 px-4">
-        <div className="mb-6 max-w-2xl mx-auto">
+        <div className="mb-6 max-w-2xl mx-auto space-y-3">
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -146,6 +169,22 @@ const Search = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-12 text-base"
             />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Сортировка:</span>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Сначала новые</SelectItem>
+                <SelectItem value="oldest">Сначала старые</SelectItem>
+                <SelectItem value="title">По названию</SelectItem>
+                <SelectItem value="artist">По исполнителю</SelectItem>
+                <SelectItem value="duration">По длительности</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -178,6 +217,7 @@ const Search = () => {
                     artist={track.artist}
                     duration={`${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`}
                     coverColor={track.cover_color}
+                    coverUrl={track.cover_url}
                     onFavoriteClick={() => handleToggleFavorite(track.id)}
                   />
                 </div>

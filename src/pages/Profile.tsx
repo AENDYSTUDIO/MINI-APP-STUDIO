@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Music, Heart, Upload } from "lucide-react";
+import { Music, Heart, Upload, Edit, List } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserProfile {
@@ -153,6 +153,24 @@ const Profile = () => {
 
         <div className="space-y-3">
           <Button 
+            className="w-full" 
+            variant="outline"
+            onClick={() => navigate("/edit-profile")}
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Редактировать профиль
+          </Button>
+
+          <Button 
+            className="w-full" 
+            variant="outline"
+            onClick={() => navigate("/playlists")}
+          >
+            <List className="mr-2 h-4 w-4" />
+            Мои плейлисты
+          </Button>
+
+          <Button
             className="w-full" 
             variant="outline"
             onClick={() => navigate("/favorites")}

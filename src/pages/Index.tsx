@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import MusicPlayer from "@/components/MusicPlayer";
 import UploadTrack from "@/components/UploadTrack";
 import TrackCard from "@/components/TrackCard";
+import EditTrackDialog from "@/components/EditTrackDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,7 @@ interface Track {
   duration: number;
   file_path: string;
   cover_color: string;
+  cover_url: string | null;
 }
 
 const Index = () => {
@@ -27,6 +29,7 @@ const Index = () => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -182,7 +185,10 @@ const Index = () => {
                     artist={track.artist}
                     duration={`${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`}
                     coverColor={track.cover_color}
+                    coverUrl={track.cover_url}
                     onFavoriteClick={() => handleToggleFavorite(track.id)}
+                    onEditClick={() => setEditingTrackId(track.id)}
+                    showEdit={user !== null}
                   />
                 </div>
               ))}
@@ -197,6 +203,12 @@ const Index = () => {
         currentTrack={currentTrack}
         onNext={handleNext}
         onPrevious={handlePrevious}
+      />
+      <EditTrackDialog
+        trackId={editingTrackId}
+        open={editingTrackId !== null}
+        onOpenChange={(open) => !open && setEditingTrackId(null)}
+        onTrackUpdated={loadTracks}
       />
     </div>
   );
