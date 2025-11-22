@@ -14,6 +14,7 @@ interface Track {
   duration: number;
   file_path: string;
   cover_color: string;
+  cover_url: string | null;
 }
 
 const Favorites = () => {
@@ -173,6 +174,7 @@ const Favorites = () => {
                   artist={track.artist}
                   duration={`${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`}
                   coverColor={track.cover_color}
+                  coverUrl={track.cover_url}
                   onFavoriteClick={() => handleToggleFavorite(track.id)}
                 />
               </div>
