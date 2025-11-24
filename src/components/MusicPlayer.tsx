@@ -9,6 +9,7 @@ interface Track {
   artist: string;
   file_path: string;
   cover_color: string;
+  cover_url?: string | null;
 }
 
 interface MusicPlayerProps {
@@ -92,10 +93,18 @@ const MusicPlayer = ({ currentTrack, onNext, onPrevious }: MusicPlayerProps) => 
       
       <div className="max-w-4xl mx-auto space-y-3">
         <div className="flex items-center gap-3">
-          <div
-            className="w-12 h-12 rounded-lg flex-shrink-0"
-            style={{ background: currentTrack.cover_color }}
-          />
+          {currentTrack.cover_url ? (
+            <img
+              src={currentTrack.cover_url}
+              alt={currentTrack.title}
+              className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+            />
+          ) : (
+            <div
+              className="w-12 h-12 rounded-lg flex-shrink-0"
+              style={{ background: currentTrack.cover_color }}
+            />
+          )}
           <div className="flex-1 min-w-0">
             <h4 className="font-medium truncate">{currentTrack.title}</h4>
             <p className="text-sm text-muted-foreground truncate">{currentTrack.artist}</p>
