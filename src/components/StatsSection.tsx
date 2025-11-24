@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { Users, Music2, Heart, Zap } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const StatsSection = () => {
-  const stats = [
+  const [stats, setStats] = useState([
     {
       icon: Users,
       value: "0",
@@ -22,7 +24,65 @@ const StatsSection = () => {
       value: "24/7",
       label: "Онлайн",
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      // Загружаем количество пользователей
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Загружаем количество треков
+      const { count: tracksCount } = await supabase
+        .from('tracks')
+        .select('*', { count: 'exact', head: true });
+
+      // Загружаем количество лайков
+      const { count: likesCount } = await supabase
+        .from('favorites')
+        .select('*', { count: 'exact', head: true });
+
+      setStats([
+        {
+          icon: Users,
+          value: formatNumber(usersCount || 0),
+          label: "Пользователей",
+        },
+        {
+          icon: Music2,
+          value: formatNumber(tracksCount || 0),
+          label: "Треков",
+        },
+        {
+          icon: Heart,
+          value: formatNumber(likesCount || 0),
+          label: "Лайков",
+        },
+        {
+          icon: Zap,
+          value: "24/7",
+          label: "Онлайн",
+        },
+      ]);
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    }
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace('.0', '') + 'K';
+    }
+    return num.toString();
+  };
 
   return (
     <section className="px-4 pb-20">
