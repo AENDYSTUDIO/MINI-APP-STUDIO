@@ -4,17 +4,17 @@ const StatsSection = () => {
   const stats = [
     {
       icon: Users,
-      value: "50K+",
+      value: "0",
       label: "Пользователей",
     },
     {
       icon: Music2,
-      value: "10K+",
+      value: "0",
       label: "Треков",
     },
     {
       icon: Heart,
-      value: "1M+",
+      value: "0",
       label: "Лайков",
     },
     {
