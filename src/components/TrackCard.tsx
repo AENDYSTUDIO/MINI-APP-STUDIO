@@ -14,13 +14,18 @@ interface TrackCardProps {
 
 const TrackCard = ({ title, artist, duration, coverColor, coverUrl, onFavoriteClick, onEditClick, showEdit }: TrackCardProps) => {
   return (
-    <div className="telegram-card flex items-center gap-3 p-3 transition-all active:scale-98">
+    <div className="telegram-card flex items-center gap-3 p-3 transition-all active:scale-98 animate-fade-in">
       <div
         className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden"
         style={{ background: coverUrl ? 'transparent' : coverColor }}
       >
         {coverUrl && (
-          <img src={coverUrl} alt={title} className="h-full w-full object-cover" />
+          <img 
+            src={coverUrl} 
+            alt={title} 
+            className="h-full w-full object-cover" 
+            loading="lazy"
+          />
         )}
       </div>
       <div className="min-w-0 flex-1">

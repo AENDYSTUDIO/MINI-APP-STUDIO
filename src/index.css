@@ -107,10 +107,25 @@ All colors MUST be HSL.
 
 @layer utilities {
   .telegram-card {
-    @apply rounded-xl bg-card shadow-sm;
+    @apply rounded-xl bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:scale-[1.02];
   }
   
   .telegram-button {
     @apply rounded-lg font-medium transition-all active:scale-95;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

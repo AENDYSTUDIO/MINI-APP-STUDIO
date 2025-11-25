@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import MusicPlayer from "@/components/MusicPlayer";
 import TrackCard from "@/components/TrackCard";
+import { SkeletonCard } from "@/components/SkeletonCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -148,8 +149,10 @@ const Favorites = () => {
         <h1 className="text-2xl font-bold mb-6">Избранное</h1>
         
         {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : tracks.length === 0 ? (
           <div className="text-center py-12">
