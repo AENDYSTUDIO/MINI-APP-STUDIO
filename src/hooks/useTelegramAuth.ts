@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getTelegramWebApp, getTelegramUser } from "@/lib/telegram";
+import { toast } from "sonner";
 
 export const useTelegramAuth = () => {
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export const useTelegramAuth = () => {
 
               if (signInError) {
                 // Sign up if doesn't exist
-                await supabase.auth.signUp({
+                const { error: signUpError } = await supabase.auth.signUp({
                   email: `${telegramUser.id}@telegram.user`,
                   password: `tg_${telegramUser.id}`,
                   options: {
@@ -42,10 +43,20 @@ export const useTelegramAuth = () => {
                     },
                   },
                 });
+
+                if (signUpError) {
+                  console.error("Telegram signup error:", signUpError);
+                  toast.error("Ошибка авторизации через Telegram");
+                } else {
+                  toast.success(`Добро пожаловать, ${telegramUser.first_name}!`);
+                }
+              } else {
+                toast.success(`С возвращением, ${telegramUser.first_name}!`);
               }
             }
           } catch (error) {
             console.error("Telegram auth error:", error);
+            toast.error("Ошибка авторизации");
           }
         }
       }
