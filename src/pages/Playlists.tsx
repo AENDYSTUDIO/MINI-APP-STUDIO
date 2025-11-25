@@ -5,9 +5,10 @@ import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Music, Loader2 } from "lucide-react";
+import { Plus, Music } from "lucide-react";
 import { toast } from "sonner";
 import CreatePlaylistDialog from "@/components/CreatePlaylistDialog";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
 interface Playlist {
   id: string;
@@ -85,8 +86,19 @@ const Playlists = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background pb-24">
+        <Header />
+        <main className="pt-4 px-4 max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold">Мои плейлисты</h1>
+          </div>
+          <div className="grid gap-4">
+            {[...Array(3)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </main>
+        <BottomNav />
       </div>
     );
   }
@@ -121,7 +133,7 @@ const Playlists = () => {
             {playlists.map((playlist) => (
               <Card
                 key={playlist.id}
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                className="cursor-pointer hover:bg-accent/50 transition-all duration-200 hover:scale-[1.02] animate-fade-in"
                 onClick={() => navigate(`/playlist/${playlist.id}`)}
               >
                 <CardContent className="p-4">
@@ -132,6 +144,7 @@ const Playlists = () => {
                           src={playlist.cover_url}
                           alt={playlist.name}
                           className="h-full w-full object-cover rounded-lg"
+                          loading="lazy"
                         />
                       ) : (
                         <Music className="h-8 w-8 text-primary" />

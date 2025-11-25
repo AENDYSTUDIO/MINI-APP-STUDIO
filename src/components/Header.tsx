@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const Header = () => {
         </Link>
         
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <>
               <Button

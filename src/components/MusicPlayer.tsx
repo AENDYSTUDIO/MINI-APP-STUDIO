@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Repeat, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
@@ -23,6 +23,8 @@ const MusicPlayer = ({ currentTrack, onNext, onPrevious }: MusicPlayerProps) => 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(100);
+  const [repeat, setRepeat] = useState(false);
+  const [shuffle, setShuffle] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -86,8 +88,12 @@ const MusicPlayer = ({ currentTrack, onNext, onPrevious }: MusicPlayerProps) => 
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => {
-          setIsPlaying(false);
-          onNext?.();
+          if (repeat) {
+            audioRef.current?.play();
+          } else {
+            setIsPlaying(false);
+            onNext?.();
+          }
         }}
       />
       
@@ -168,7 +174,24 @@ const MusicPlayer = ({ currentTrack, onNext, onPrevious }: MusicPlayerProps) => 
             </Button>
           </div>
 
-          <div className="w-32" />
+          <div className="flex items-center gap-2 w-32 justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setRepeat(!repeat)}
+              className={repeat ? "text-primary" : ""}
+            >
+              <Repeat className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShuffle(!shuffle)}
+              className={shuffle ? "text-primary" : ""}
+            >
+              <Shuffle className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
