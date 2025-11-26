@@ -51,6 +51,20 @@ export const getTelegramWebApp = (): TelegramWebApp | null => {
 
 export const getTelegramUser = () => {
   const webApp = getTelegramWebApp();
+  
+  // Development mode: Mock Telegram user when not in Telegram WebApp
+  if (!webApp?.initDataUnsafe?.user && import.meta.env.DEV) {
+    console.log('🔧 Development mode: Using mock Telegram user');
+    return {
+      id: 123456789,
+      first_name: 'Dev',
+      last_name: 'User',
+      username: 'devuser',
+      language_code: 'ru',
+      photo_url: undefined
+    };
+  }
+  
   return webApp?.initDataUnsafe?.user || null;
 };
 
