@@ -14,7 +14,7 @@ const HeroSection = () => {
           Dance to the Beat
         </h2>
         <p className="mb-4 text-center text-sm text-muted-foreground">
-          Откройте мир танцевальной музыки
+          У нас есть ритм, который заставит тебя подпрыгнуть!
         </p>
         <Button className="telegram-button w-full bg-primary hover:bg-primary/90">
           Начать слушать
