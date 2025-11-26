@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Music2 } from "lucide-react";
 import { z } from "zod";
+import { isTelegramWebApp } from "@/lib/telegram";
 
 const emailSchema = z.string().email("Некорректный email");
 const passwordSchema = z.string().min(6, "Пароль должен быть не менее 6 символов");
@@ -24,6 +25,39 @@ const Auth = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         navigate("/");
+        return;
+      }
+      
+      // Auto-login in dev mode
+      if (import.meta.env.DEV) {
+        console.log("🔧 Dev mode: Attempting auto-login...");
+        const devEmail = "dev@normaldance.local";
+        const devPassword = "devpassword123";
+        
+        // Try to sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: devEmail,
+          password: devPassword,
+        });
+        
+        if (signInError) {
+          console.log("🔧 Dev user doesn't exist, creating...");
+          // Create dev user
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: devEmail,
+            password: devPassword,
+          });
+          
+          if (signUpError) {
+            console.error("❌ Failed to create dev user:", signUpError);
+          } else {
+            console.log("✅ Dev user created and logged in");
+            toast.success("Добро пожаловать в режим разработки!");
+          }
+        } else {
+          console.log("✅ Dev user logged in");
+          toast.success("Автоматический вход в режиме разработки");
+        }
       }
     };
     checkUser();
@@ -112,6 +146,8 @@ const Auth = () => {
     }
   };
 
+  const inTelegram = isTelegramWebApp();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border/40 bg-card/50 backdrop-blur">
@@ -123,8 +159,15 @@ const Auth = () => {
             NORMAL DANCE
           </CardTitle>
           <CardDescription>
-            {isLogin ? "Войдите в свой аккаунт" : "Создайте новый аккаунт"}
+            {inTelegram 
+              ? "Авторизация через Telegram..." 
+              : isLogin ? "Войдите в свой аккаунт" : "Создайте новый аккаунт"}
           </CardDescription>
+          {!inTelegram && import.meta.env.DEV && (
+            <div className="mt-2 text-xs text-yellow-500 border border-yellow-500/30 rounded p-2 bg-yellow-500/10">
+              🔧 Режим разработки: Используйте email/пароль или откройте в Telegram
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={isLogin ? handleSignIn : handleSignUp} className="space-y-4">

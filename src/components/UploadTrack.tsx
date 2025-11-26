@@ -70,14 +70,28 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
         }
       }
 
-      // Get audio duration
+      // Get audio duration with timeout and error handling
       const audio = new Audio();
-      audio.src = URL.createObjectURL(file);
-      
-      await new Promise((resolve) => {
+      const objectUrl = URL.createObjectURL(file);
+      audio.src = objectUrl;
+
+      const duration: number = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          audio.onloadedmetadata = null;
+          reject(new Error("Не удалось определить длительность аудио (таймаут)"));
+        }, 8000);
+
+        audio.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error("Ошибка при чтении аудиофайла"));
+        };
+
         audio.onloadedmetadata = () => {
+          clearTimeout(timeout);
           resolve(audio.duration);
         };
+      }).finally(() => {
+        URL.revokeObjectURL(objectUrl);
       });
 
       // Insert track record
@@ -87,7 +101,7 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
           user_id: user.id,
           title,
           artist,
-          duration: Math.floor(audio.duration),
+          duration: Math.floor(duration),
           file_path: publicUrl,
           cover_color: `hsl(${Math.random() * 360}, 70%, 50%)`,
           cover_url: coverUrl,

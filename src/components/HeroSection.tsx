@@ -11,10 +11,10 @@ const HeroSection = () => {
           </div>
         </div>
         <h2 className="mb-2 text-center text-2xl font-bold">
-          Dance to the Beat
+          Создано с  для сообщества драм-н-бейс
         </h2>
         <p className="mb-4 text-center text-sm text-muted-foreground">
-          Откройте мир танцевальной музыки
+          У нас есть ритм, который заставит тебя подпрыгнуть!
         </p>
         <Button className="telegram-button w-full bg-primary hover:bg-primary/90">
           Начать слушать

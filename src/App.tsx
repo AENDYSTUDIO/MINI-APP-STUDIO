@@ -12,7 +12,9 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Search from "./pages/Search";
 import Playlists from "./pages/Playlists";
+import Playlist from "./pages/Playlist";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -34,11 +36,12 @@ const AppContent = () => {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
-      <Route path="/favorites" element={<Favorites />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/edit-profile" element={<EditProfile />} />
-      <Route path="/search" element={<Search />} />
-      <Route path="/playlists" element={<Playlists />} />
+      <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+     <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+     <Route path="/search" element={<Search />} />
+     <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
+     <Route path="/playlist/:id" element={<ProtectedRoute><Playlist /></ProtectedRoute>} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

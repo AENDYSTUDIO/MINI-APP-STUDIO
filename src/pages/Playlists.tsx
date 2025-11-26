@@ -10,12 +10,16 @@ import { toast } from "sonner";
 import CreatePlaylistDialog from "@/components/CreatePlaylistDialog";
 import { SkeletonCard } from "@/components/SkeletonCard";
 
-interface Playlist {
+interface PlaylistRow {
   id: string;
   name: string;
   description: string | null;
   cover_url: string | null;
   created_at: string;
+  playlist_tracks?: { id: string }[];
+}
+
+interface Playlist extends Omit<PlaylistRow, 'playlist_tracks'> {
   track_count: number;
 }
 
@@ -50,25 +54,20 @@ const Playlists = () => {
 
       const { data: playlistsData, error } = await supabase
         .from('playlists')
-        .select('*')
+        .select('id,name,description,cover_url,created_at, playlist_tracks ( id )')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const playlistsWithCount = await Promise.all(
-        (playlistsData || []).map(async (playlist) => {
-          const { count } = await supabase
-            .from('playlist_tracks')
-            .select('*', { count: 'exact', head: true })
-            .eq('playlist_id', playlist.id);
-
-          return {
-            ...playlist,
-            track_count: count || 0
-          };
-        })
-      );
+      const playlistsWithCount: Playlist[] = (playlistsData as PlaylistRow[]).map((pl) => ({
+        id: pl.id,
+        name: pl.name,
+        description: pl.description,
+        cover_url: pl.cover_url,
+        created_at: pl.created_at,
+        track_count: pl.playlist_tracks?.length || 0,
+      }));
 
       setPlaylists(playlistsWithCount);
     } catch (error: any) {
