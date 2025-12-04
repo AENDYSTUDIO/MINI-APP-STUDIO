@@ -1,6 +1,7 @@
 import { Play, Heart, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/ShareButton";
+import { ArtistSubscribeButton } from "@/components/ArtistSubscribeButton";
 
 interface TrackCardProps {
   title: string;
@@ -13,9 +14,10 @@ interface TrackCardProps {
   onEditClick?: () => void;
   showEdit?: boolean;
   showShare?: boolean;
+  showSubscribe?: boolean;
 }
 
-const TrackCard = ({ title, artist, duration, coverColor, coverUrl, trackId, onFavoriteClick, onEditClick, showEdit, showShare = true }: TrackCardProps) => {
+const TrackCard = ({ title, artist, duration, coverColor, coverUrl, trackId, onFavoriteClick, onEditClick, showEdit, showShare = true, showSubscribe = true }: TrackCardProps) => {
   return (
     <div className="telegram-card flex items-center gap-3 p-3 transition-all active:scale-98 animate-fade-in">
       <div
@@ -55,6 +57,12 @@ const TrackCard = ({ title, artist, duration, coverColor, coverUrl, trackId, onF
         >
           <Heart className="h-4 w-4" />
         </Button>
+        {showSubscribe && (
+          <ArtistSubscribeButton
+            artistName={artist}
+            className="h-8 w-8 shrink-0 text-muted-foreground"
+          />
+        )}
         {showShare && (
           <ShareButton
             title={title}

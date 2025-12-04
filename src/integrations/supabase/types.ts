@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      artist_subscriptions: {
+        Row: {
+          artist_name: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          artist_name: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          artist_name?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string | null

@@ -1,13 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
+import MusicPlayer from "@/components/MusicPlayer";
+import { SortableTrackItem } from "@/components/SortableTrackItem";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { Music, Trash2 } from "lucide-react";
+import { Music, Play } from "lucide-react";
 import { toast } from "sonner";
+import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
+import ShareButton from "@/components/ShareButton";
 
 interface Track {
   id: string;
@@ -23,7 +41,8 @@ interface PlaylistTrackRow {
   id: string;
   position: number | null;
   added_at: string;
-  tracks: Track; // via foreign table mapping tracks:track_id
+  track_id: string;
+  tracks: Track;
 }
 
 interface Playlist {
@@ -44,9 +63,22 @@ const formatDuration = (sec?: number | null) => {
 const PlaylistPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  useTelegramBackButton();
+  
   const [loading, setLoading] = useState(true);
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [items, setItems] = useState<PlaylistTrackRow[]>([]);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -56,14 +88,12 @@ const PlaylistPage = () => {
   const loadPlaylist = async (playlistId: string) => {
     try {
       setLoading(true);
-      // ensure auth
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/auth");
         return;
       }
 
-      // fetch playlist meta
       const { data: playlistData, error: pErr } = await supabase
         .from("playlists")
         .select("id,name,description,cover_url,created_at")
@@ -72,10 +102,9 @@ const PlaylistPage = () => {
       if (pErr) throw pErr;
       setPlaylist(playlistData as Playlist);
 
-      // fetch tracks via join
       const { data: pts, error: tErr } = await supabase
         .from("playlist_tracks")
-        .select("id, position, added_at, tracks:track_id ( id, title, artist, duration, file_path, cover_url, cover_color )")
+        .select("id, position, added_at, track_id, tracks:track_id ( id, title, artist, duration, file_path, cover_url, cover_color )")
         .eq("playlist_id", playlistId)
         .order("position", { ascending: true, nullsFirst: true });
       if (tErr) throw tErr;
@@ -98,11 +127,70 @@ const PlaylistPage = () => {
         .match({ playlist_id: id, track_id: trackId });
       if (error) throw error;
       toast.success("Трек удалён из плейлиста");
-      // refresh list
       await loadPlaylist(id);
     } catch (e: any) {
       console.error("Remove from playlist error", e);
       toast.error("Ошибка при удалении трека");
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !id) return;
+
+    const oldIndex = items.findIndex((item) => item.id === active.id);
+    const newIndex = items.findIndex((item) => item.id === over.id);
+
+    const newItems = arrayMove(items, oldIndex, newIndex);
+    setItems(newItems);
+
+    // Update positions in database
+    try {
+      const updates = newItems.map((item, index) => ({
+        id: item.id,
+        playlist_id: id,
+        track_id: item.track_id,
+        position: index,
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from("playlist_tracks")
+          .update({ position: update.position })
+          .eq("id", update.id);
+      }
+    } catch (error) {
+      console.error("Update positions error:", error);
+      toast.error("Ошибка при сохранении порядка");
+      loadPlaylist(id);
+    }
+  };
+
+  const handlePlayTrack = (track: Track, index: number) => {
+    setCurrentTrack({
+      ...track,
+      cover_color: track.cover_color || "hsl(207, 90%, 50%)",
+    });
+    setCurrentTrackIndex(index);
+  };
+
+  const handlePlayAll = () => {
+    if (items.length > 0) {
+      handlePlayTrack(items[0].tracks, 0);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentTrackIndex < items.length - 1) {
+      const nextIndex = currentTrackIndex + 1;
+      handlePlayTrack(items[nextIndex].tracks, nextIndex);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentTrackIndex > 0) {
+      const prevIndex = currentTrackIndex - 1;
+      handlePlayTrack(items[prevIndex].tracks, prevIndex);
     }
   };
 
@@ -140,7 +228,7 @@ const PlaylistPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-32">
       <Header />
       <main className="pt-4 px-4 max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
@@ -149,6 +237,19 @@ const PlaylistPage = () => {
             <p className="text-sm text-muted-foreground">
               {trackCount} {trackCount === 1 ? "трек" : "треков"}
             </p>
+          </div>
+          <div className="flex gap-2">
+            <ShareButton
+              title={playlist.name}
+              text={playlist.description || `Плейлист: ${playlist.name}`}
+              url={`${window.location.origin}/playlist/${playlist.id}`}
+            />
+            {items.length > 0 && (
+              <Button onClick={handlePlayAll}>
+                <Play className="h-4 w-4 mr-2" />
+                Воспроизвести
+              </Button>
+            )}
           </div>
         </div>
 
@@ -159,44 +260,38 @@ const PlaylistPage = () => {
             <p className="text-muted-foreground">Добавьте треки в этот плейлист</p>
           </div>
         ) : (
-          <div className="grid gap-3">
-            {items.map((pt) => (
-              <Card key={pt.id} className="hover:bg-accent/50 transition-all">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="h-14 w-14 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
-                      style={{ background: pt.tracks.cover_color || "#111827" }}
-                    >
-                      {pt.tracks.cover_url ? (
-                        <img
-                          src={pt.tracks.cover_url}
-                          alt={pt.tracks.title}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Music className="h-6 w-6 text-primary" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{pt.tracks.title}</div>
-                      <div className="text-sm text-muted-foreground truncate">{pt.tracks.artist}</div>
-                    </div>
-                    <div className="text-xs text-muted-foreground w-12 text-right">
-                      {formatDuration(pt.tracks.duration)}
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleRemove(pt.tracks.id)} title="Удалить из плейлиста">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={items.map((item) => item.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="grid gap-3">
+                {items.map((pt, index) => (
+                  <SortableTrackItem
+                    key={pt.id}
+                    id={pt.id}
+                    track={pt.tracks}
+                    isPlaying={currentTrack?.id === pt.tracks.id}
+                    onPlay={() => handlePlayTrack(pt.tracks, index)}
+                    onRemove={() => handleRemove(pt.tracks.id)}
+                    formatDuration={formatDuration}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </main>
       <BottomNav />
+      <MusicPlayer
+        currentTrack={currentTrack}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+      />
     </div>
   );
 };
