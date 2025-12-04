@@ -178,6 +178,7 @@ const Favorites = () => {
                   duration={`${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`}
                   coverColor={track.cover_color}
                   coverUrl={track.cover_url}
+                  trackId={track.id}
                   onFavoriteClick={() => handleToggleFavorite(track.id)}
                 />
               </div>
