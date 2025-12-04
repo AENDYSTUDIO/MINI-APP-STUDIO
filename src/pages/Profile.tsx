@@ -6,8 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Music, Heart, Upload, Edit, List } from "lucide-react";
+import { Music, Heart, Upload, Edit, List, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
+import ShareButton from "@/components/ShareButton";
 
 interface UserProfile {
   username: string | null;
@@ -23,6 +25,7 @@ interface UserStats {
 
 const Profile = () => {
   const navigate = useNavigate();
+  useTelegramBackButton();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<UserStats>({ tracksCount: 0, favoritesCount: 0 });
   const [loading, setLoading] = useState(true);
@@ -122,6 +125,15 @@ const Profile = () => {
             {profile?.username && (
               <CardDescription className="text-base">@{profile.username}</CardDescription>
             )}
+            <div className="mt-2">
+              <ShareButton
+                title={displayName}
+                text={`Профиль пользователя ${displayName}`}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              />
+            </div>
           </CardHeader>
         </Card>
 

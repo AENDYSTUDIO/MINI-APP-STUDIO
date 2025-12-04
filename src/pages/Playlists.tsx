@@ -9,6 +9,7 @@ import { Plus, Music } from "lucide-react";
 import { toast } from "sonner";
 import CreatePlaylistDialog from "@/components/CreatePlaylistDialog";
 import { SkeletonCard } from "@/components/SkeletonCard";
+import ShareButton from "@/components/ShareButton";
 
 interface PlaylistRow {
   id: string;
@@ -160,6 +161,12 @@ const Playlists = () => {
                         {playlist.track_count} {playlist.track_count === 1 ? 'трек' : 'треков'}
                       </p>
                     </div>
+                    <ShareButton
+                      title={playlist.name}
+                      text={playlist.description || `Плейлист: ${playlist.name}`}
+                      url={`${window.location.origin}/playlist/${playlist.id}`}
+                      className="h-10 w-10"
+                    />
                   </div>
                 </CardContent>
               </Card>

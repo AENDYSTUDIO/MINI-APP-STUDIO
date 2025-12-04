@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import StatsSection from "@/components/StatsSection";
@@ -10,6 +10,7 @@ import EditTrackDialog from "@/components/EditTrackDialog";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { useTelegramMainButton } from "@/hooks/useTelegramMainButton";
 import { useToast } from "@/hooks/use-toast";
 
 interface Track {
@@ -31,6 +32,20 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+
+  const handleMainButtonClick = useCallback(() => {
+    if (user) {
+      setShowUploadDialog(true);
+    }
+  }, [user]);
+
+  useTelegramMainButton({
+    text: "Загрузить трек",
+    onClick: handleMainButtonClick,
+    isVisible: !!user && !telegramLoading,
+    isActive: !!user,
+  });
 
   useEffect(() => {
     checkUser();
@@ -157,7 +172,11 @@ const Index = () => {
         <section className="px-4 pb-6">
           {user && (
             <div className="mb-4">
-              <UploadTrack onUploadComplete={loadTracks} />
+              <UploadTrack 
+                onUploadComplete={loadTracks} 
+                open={showUploadDialog}
+                onOpenChange={setShowUploadDialog}
+              />
             </div>
           )}
           
@@ -189,6 +208,7 @@ const Index = () => {
                     duration={`${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`}
                     coverColor={track.cover_color}
                     coverUrl={track.cover_url}
+                    trackId={track.id}
                     onFavoriteClick={() => handleToggleFavorite(track.id)}
                     onEditClick={() => setEditingTrackId(track.id)}
                     showEdit={user !== null}

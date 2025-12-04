@@ -13,8 +13,22 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) => {
-  const [open, setOpen] = useState(false);
+interface UploadTrackProps {
+  onUploadComplete?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const UploadTrack = ({ onUploadComplete, open: controlledOpen, onOpenChange }: UploadTrackProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalOpen(value);
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
@@ -75,24 +89,27 @@ const UploadTrack = ({ onUploadComplete }: { onUploadComplete?: () => void }) =>
       const objectUrl = URL.createObjectURL(file);
       audio.src = objectUrl;
 
-      const duration: number = await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          audio.onloadedmetadata = null;
-          reject(new Error("Не удалось определить длительность аудио (таймаут)"));
-        }, 8000);
+      let duration: number;
+      try {
+        duration = await new Promise<number>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            audio.onloadedmetadata = null;
+            reject(new Error("Не удалось определить длительность аудио (таймаут)"));
+          }, 8000);
 
-        audio.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error("Ошибка при чтении аудиофайла"));
-        };
+          audio.onerror = () => {
+            clearTimeout(timeout);
+            reject(new Error("Ошибка при чтении аудиофайла"));
+          };
 
-        audio.onloadedmetadata = () => {
-          clearTimeout(timeout);
-          resolve(audio.duration);
-        };
-      }).finally(() => {
+          audio.onloadedmetadata = () => {
+            clearTimeout(timeout);
+            resolve(audio.duration);
+          };
+        });
+      } finally {
         URL.revokeObjectURL(objectUrl);
-      });
+      }
 
       // Insert track record
       const { error: insertError } = await supabase
