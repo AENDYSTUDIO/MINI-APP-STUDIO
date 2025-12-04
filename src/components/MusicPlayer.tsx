@@ -37,9 +37,13 @@ const MusicPlayer = ({ currentTrack, onNext, onPrevious }: MusicPlayerProps) => 
     if (currentTrack && audioRef.current) {
       audioRef.current.src = currentTrack.file_path;
       audioRef.current.load();
-      if (isPlaying) {
-        audioRef.current.play();
-      }
+      // Auto-play when new track is selected
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(err => {
+        console.log("Auto-play prevented:", err);
+        setIsPlaying(false);
+      });
     }
   }, [currentTrack]);
 
