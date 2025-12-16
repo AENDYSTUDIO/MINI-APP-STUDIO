@@ -11,7 +11,7 @@ const HeroSection = () => {
           </div>
         </div>
         <h2 className="mb-2 text-center text-2xl font-bold">
-          Создано с  для сообщества драм-н-бейс
+          Создано с ❤️ для сообщества драм-н-бейс
         </h2>
         <p className="mb-4 text-center text-sm text-muted-foreground">
           У нас есть ритм, который заставит тебя подпрыгнуть!
