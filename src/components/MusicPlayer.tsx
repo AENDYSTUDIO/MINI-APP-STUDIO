@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Play, Pause, SkipBack, SkipForward, Volume2, Repeat, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import AudioVisualizer from "./AudioVisualizer";
 
 interface Track {
   id: string;
@@ -119,6 +120,11 @@ const MusicPlayer = ({ currentTrack, onNext, onPrevious }: MusicPlayerProps) => 
             <h4 className="font-medium truncate">{currentTrack.title}</h4>
             <p className="text-sm text-muted-foreground truncate">{currentTrack.artist}</p>
           </div>
+          <AudioVisualizer 
+            audioElement={audioRef.current} 
+            isPlaying={isPlaying}
+            color={currentTrack.cover_color || "hsl(var(--primary))"}
+          />
         </div>
 
         <div className="space-y-2">
