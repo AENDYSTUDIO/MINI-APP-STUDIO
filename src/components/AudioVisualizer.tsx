@@ -89,14 +89,11 @@ const AudioVisualizer = ({ audioElement, isPlaying, color = "hsl(var(--primary))
         const x = i * (barWidth + 2);
         const y = canvas.height - barHeight;
 
-        // Gradient effect
-        const gradient = ctx.createLinearGradient(x, y, x, canvas.height);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, `${color.replace(")", " / 0.5)")}`);
-
-        ctx.fillStyle = gradient;
+        ctx.globalAlpha = 0.5 + (barHeight / canvas.height) * 0.5;
+        ctx.fillStyle = color;
         ctx.fillRect(x, y, barWidth, barHeight);
       }
+      ctx.globalAlpha = 1;
     };
 
     if (isPlaying && audioContextRef.current?.state === "suspended") {
