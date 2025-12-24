@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 
 export type VisualizerStyle = "bars" | "wave" | "circle";
 
@@ -10,6 +10,13 @@ interface AudioVisualizerProps {
   size?: "small" | "large";
 }
 
+// Global store for audio context connections to avoid re-creating
+const audioContextMap = new WeakMap<HTMLAudioElement, {
+  context: AudioContext;
+  analyser: AnalyserNode;
+  source: MediaElementAudioSourceNode;
+}>();
+
 const AudioVisualizer = ({ 
   audioElement, 
   isPlaying, 
@@ -19,51 +26,52 @@ const AudioVisualizer = ({
 }: AudioVisualizerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [audioData, setAudioData] = useState<{
+    analyser: AnalyserNode;
+    context: AudioContext;
+  } | null>(null);
 
   const canvasWidth = size === "large" ? 400 : 160;
   const canvasHeight = size === "large" ? 200 : 32;
 
+  // Initialize audio context only once per audio element
   useEffect(() => {
-    if (!audioElement || isInitialized) return;
+    if (!audioElement) return;
+
+    // Check if we already have a connection for this audio element
+    const existing = audioContextMap.get(audioElement);
+    if (existing) {
+      setAudioData({ analyser: existing.analyser, context: existing.context });
+      return;
+    }
 
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      audioContextRef.current = audioContext;
-
+      
       const analyser = audioContext.createAnalyser();
-      analyser.fftSize = style === "wave" ? 256 : 64;
+      analyser.fftSize = 256;
       analyser.smoothingTimeConstant = 0.8;
-      analyserRef.current = analyser;
 
       const source = audioContext.createMediaElementSource(audioElement);
       source.connect(analyser);
       analyser.connect(audioContext.destination);
-      sourceRef.current = source;
 
-      setIsInitialized(true);
+      // Store the connection
+      audioContextMap.set(audioElement, { context: audioContext, analyser, source });
+      setAudioData({ analyser, context: audioContext });
     } catch (error) {
       console.log("Audio visualizer initialization error:", error);
     }
+  }, [audioElement]);
 
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [audioElement, isInitialized, style]);
-
-  useEffect(() => {
-    if (!canvasRef.current || !analyserRef.current) return;
+  const draw = useCallback(() => {
+    if (!canvasRef.current || !audioData) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const analyser = analyserRef.current;
+    const { analyser } = audioData;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
@@ -151,22 +159,24 @@ const AudioVisualizer = ({
       ctx.globalAlpha = 1;
     };
 
-    const draw = () => {
-      if (style === "bars") {
-        drawBars();
-      } else if (style === "wave") {
-        drawWave();
-      } else if (style === "circle") {
-        drawCircle();
-      }
+    if (style === "bars") {
+      drawBars();
+    } else if (style === "wave") {
+      drawWave();
+    } else if (style === "circle") {
+      drawCircle();
+    }
 
-      if (isPlaying) {
-        animationRef.current = requestAnimationFrame(draw);
-      }
-    };
+    if (isPlaying) {
+      animationRef.current = requestAnimationFrame(draw);
+    }
+  }, [audioData, isPlaying, color, style, size]);
 
-    if (isPlaying && audioContextRef.current?.state === "suspended") {
-      audioContextRef.current.resume();
+  useEffect(() => {
+    if (!audioData) return;
+
+    if (isPlaying && audioData.context.state === "suspended") {
+      audioData.context.resume();
     }
 
     draw();
@@ -176,7 +186,7 @@ const AudioVisualizer = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, color, style, size]);
+  }, [audioData, isPlaying, draw]);
 
   return (
     <canvas
