@@ -5,12 +5,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import MusicPlayer from "@/components/MusicPlayer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Search from "./pages/Search";
+import Explore from "./pages/Explore";
+import Artist from "./pages/Artist";
 import Playlists from "./pages/Playlists";
 import Playlist from "./pages/Playlist";
 import NotFound from "./pages/NotFound";
@@ -33,18 +36,24 @@ const AppContent = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-     <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-     <Route path="/search" element={<Search />} />
-     <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
-     <Route path="/playlist/:id" element={<ProtectedRoute><Playlist /></ProtectedRoute>} />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/artist/:name" element={<Artist />} />
+        <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
+        <Route path="/playlist/:id" element={<ProtectedRoute><Playlist /></ProtectedRoute>} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      {/* Global persistent music player */}
+      <MusicPlayer />
+    </>
   );
 };
 

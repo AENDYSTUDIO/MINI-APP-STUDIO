@@ -2,96 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* NORMAL DANCE — Telegram Mini App neon rave theme. All colors HSL. */
 
 @layer base {
   :root {
-    --background: 216 20% 95%;
-    --foreground: 216 20% 10%;
+    /* Light fallback (rarely used — app defaults to dark) */
+    --background: 240 16% 96%;
+    --foreground: 240 16% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 216 20% 10%;
+    --card-foreground: 240 16% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 216 20% 10%;
+    --popover-foreground: 240 16% 8%;
 
-    --primary: 207 100% 50%;
+    --primary: 210 100% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 216 15% 92%;
-    --secondary-foreground: 216 20% 10%;
+    --secondary: 240 10% 90%;
+    --secondary-foreground: 240 16% 8%;
 
-    --muted: 216 15% 92%;
-    --muted-foreground: 216 10% 40%;
+    --muted: 240 10% 92%;
+    --muted-foreground: 240 6% 40%;
 
-    --accent: 207 100% 50%;
+    --accent: 326 100% 60%;
     --accent-foreground: 0 0% 100%;
+
+    --neon-blue: 210 100% 55%;
+    --neon-green: 130 100% 55%;
+    --neon-pink: 326 100% 62%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 216 15% 88%;
-    --input: 216 15% 88%;
-    --ring: 207 100% 50%;
+    --border: 240 10% 85%;
+    --input: 240 10% 85%;
+    --ring: 210 100% 55%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 216 28% 7%;
+    /* Midnight black #08080C ≈ hsl(240 16% 4%) */
+    --background: 240 16% 4%;
     --foreground: 0 0% 98%;
 
-    --card: 216 25% 10%;
+    --card: 240 14% 8%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 216 25% 10%;
+    --popover: 240 14% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 207 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    /* Electric Blue */
+    --primary: 210 100% 55%;
+    --primary-foreground: 240 16% 4%;
 
-    --secondary: 216 20% 15%;
+    --secondary: 240 12% 14%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 216 20% 15%;
-    --muted-foreground: 216 10% 60%;
+    --muted: 240 12% 12%;
+    --muted-foreground: 240 8% 65%;
 
-    --accent: 207 100% 50%;
+    /* Neon Pink */
+    --accent: 326 100% 62%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    /* Neon palette tokens */
+    --neon-blue: 210 100% 55%;
+    --neon-green: 130 100% 55%;
+    --neon-pink: 326 100% 62%;
+
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 216 20% 18%;
-    --input: 216 20% 18%;
-    --ring: 207 100% 50%;
-    
-    --sidebar-background: 240 10% 5%;
+    --border: 240 12% 16%;
+    --input: 240 12% 14%;
+    --ring: 326 100% 62%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--neon-blue)), hsl(var(--neon-pink)));
+    --gradient-neon: linear-gradient(120deg, hsl(var(--neon-blue)) 0%, hsl(var(--neon-green)) 50%, hsl(var(--neon-pink)) 100%);
+
+    --glow-primary: 0 0 24px hsl(var(--neon-blue) / 0.45);
+    --glow-accent: 0 0 24px hsl(var(--neon-pink) / 0.45);
+    --glow-green: 0 0 24px hsl(var(--neon-green) / 0.45);
+
+    --sidebar-background: 240 14% 6%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 326 100% 74%;
+    --sidebar-primary: 326 100% 62%;
     --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 240 10% 10%;
+    --sidebar-accent: 240 12% 10%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 10% 15%;
-    --sidebar-ring: 326 100% 74%;
+    --sidebar-border: 240 12% 14%;
+    --sidebar-ring: 326 100% 62%;
   }
 }
 
@@ -102,30 +113,48 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at 10% 0%, hsl(var(--neon-blue) / 0.08), transparent 40%),
+      radial-gradient(circle at 90% 100%, hsl(var(--neon-pink) / 0.08), transparent 40%);
+    background-attachment: fixed;
   }
 }
 
 @layer utilities {
   .telegram-card {
-    @apply rounded-xl bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:scale-[1.02];
+    @apply rounded-xl bg-card border border-border/60 shadow-sm transition-all duration-200 hover:border-primary/40;
   }
-  
+
   .telegram-button {
     @apply rounded-lg font-medium transition-all active:scale-95;
   }
-  
+
+  .neon-text {
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .neon-border {
+    box-shadow: var(--glow-primary);
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
   }
-  
+
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 12px hsl(var(--neon-pink) / 0.4); }
+    50%      { box-shadow: 0 0 24px hsl(var(--neon-pink) / 0.8); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
   }
 }

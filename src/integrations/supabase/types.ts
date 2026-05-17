@@ -192,36 +192,48 @@ export type Database = {
       tracks: {
         Row: {
           artist: string
+          bpm: number | null
           cover_color: string | null
           cover_url: string | null
           created_at: string | null
           duration: number
+          energy_level: number | null
           file_path: string
           id: string
+          musical_key: string | null
+          tg_file_id: string | null
           title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
           artist: string
+          bpm?: number | null
           cover_color?: string | null
           cover_url?: string | null
           created_at?: string | null
           duration: number
+          energy_level?: number | null
           file_path: string
           id?: string
+          musical_key?: string | null
+          tg_file_id?: string | null
           title: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
           artist?: string
+          bpm?: number | null
           cover_color?: string | null
           cover_url?: string | null
           created_at?: string | null
           duration?: number
+          energy_level?: number | null
           file_path?: string
           id?: string
+          musical_key?: string | null
+          tg_file_id?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
