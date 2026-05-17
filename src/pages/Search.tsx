@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import MusicPlayer from "@/components/MusicPlayer";
 import TrackCard from "@/components/TrackCard";
+import { usePlayerStore } from "@/stores/playerStore";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,10 +24,9 @@ const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [tracks, setTracks] = useState<Track[]>([]);
   const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<string>("newest");
+  const playTrack = usePlayerStore((s) => s.playTrack);
 
   useEffect(() => {
     loadTracks();
@@ -84,24 +83,7 @@ const Search = () => {
   };
 
   const handlePlayTrack = (track: Track, index: number) => {
-    setCurrentTrack(track);
-    setCurrentTrackIndex(index);
-  };
-
-  const handleNext = () => {
-    if (currentTrackIndex < filteredTracks.length - 1) {
-      const nextIndex = currentTrackIndex + 1;
-      setCurrentTrack(filteredTracks[nextIndex]);
-      setCurrentTrackIndex(nextIndex);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentTrackIndex > 0) {
-      const prevIndex = currentTrackIndex - 1;
-      setCurrentTrack(filteredTracks[prevIndex]);
-      setCurrentTrackIndex(prevIndex);
-    }
+    playTrack(track as any, filteredTracks as any, index);
   };
 
   const handleToggleFavorite = async (trackId: string) => {
@@ -228,11 +210,6 @@ const Search = () => {
       </main>
 
       <BottomNav />
-      <MusicPlayer
-        currentTrack={currentTrack}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-      />
     </div>
   );
 };

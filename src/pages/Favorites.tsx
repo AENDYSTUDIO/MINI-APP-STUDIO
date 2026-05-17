@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import MusicPlayer from "@/components/MusicPlayer";
 import TrackCard from "@/components/TrackCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { usePlayerStore } from "@/stores/playerStore";
 
 interface Track {
   id: string;
@@ -22,10 +22,9 @@ const Favorites = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const playTrack = usePlayerStore((s) => s.playTrack);
 
   useEffect(() => {
     checkUser();
@@ -92,24 +91,7 @@ const Favorites = () => {
   };
 
   const handlePlayTrack = (track: Track, index: number) => {
-    setCurrentTrack(track);
-    setCurrentTrackIndex(index);
-  };
-
-  const handleNext = () => {
-    if (currentTrackIndex < tracks.length - 1) {
-      const nextIndex = currentTrackIndex + 1;
-      setCurrentTrack(tracks[nextIndex]);
-      setCurrentTrackIndex(nextIndex);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentTrackIndex > 0) {
-      const prevIndex = currentTrackIndex - 1;
-      setCurrentTrack(tracks[prevIndex]);
-      setCurrentTrackIndex(prevIndex);
-    }
+    playTrack(track as any, tracks as any, index);
   };
 
   const handleToggleFavorite = async (trackId: string) => {
@@ -187,11 +169,6 @@ const Favorites = () => {
         )}
       </main>
       <BottomNav />
-      <MusicPlayer
-        currentTrack={currentTrack}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-      />
     </div>
   );
 };

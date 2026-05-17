@@ -17,8 +17,8 @@ import {
 } from "@dnd-kit/sortable";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import MusicPlayer from "@/components/MusicPlayer";
 import { SortableTrackItem } from "@/components/SortableTrackItem";
+import { usePlayerStore } from "@/stores/playerStore";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -68,8 +68,8 @@ const PlaylistPage = () => {
   const [loading, setLoading] = useState(true);
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [items, setItems] = useState<PlaylistTrackRow[]>([]);
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const playTrack = usePlayerStore((s) => s.playTrack);
+  const currentTrack = usePlayerStore((s) => s.currentTrack);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -167,31 +167,15 @@ const PlaylistPage = () => {
   };
 
   const handlePlayTrack = (track: Track, index: number) => {
-    setCurrentTrack({
-      ...track,
-      cover_color: track.cover_color || "hsl(207, 90%, 50%)",
-    });
-    setCurrentTrackIndex(index);
+    const queue = items.map((it) => ({
+      ...it.tracks,
+      cover_color: it.tracks.cover_color || "hsl(207, 90%, 50%)",
+    })) as any;
+    playTrack(queue[index], queue, index);
   };
 
   const handlePlayAll = () => {
-    if (items.length > 0) {
-      handlePlayTrack(items[0].tracks, 0);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentTrackIndex < items.length - 1) {
-      const nextIndex = currentTrackIndex + 1;
-      handlePlayTrack(items[nextIndex].tracks, nextIndex);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentTrackIndex > 0) {
-      const prevIndex = currentTrackIndex - 1;
-      handlePlayTrack(items[prevIndex].tracks, prevIndex);
-    }
+    if (items.length > 0) handlePlayTrack(items[0].tracks, 0);
   };
 
   const trackCount = useMemo(() => items.length, [items]);
@@ -287,11 +271,6 @@ const PlaylistPage = () => {
         )}
       </main>
       <BottomNav />
-      <MusicPlayer
-        currentTrack={currentTrack}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-      />
     </div>
   );
 };
