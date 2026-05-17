@@ -10,8 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { CAMELOT_KEYS } from "@/components/TrackFilters";
 
 interface UploadTrackProps {
   onUploadComplete?: () => void;
@@ -23,17 +25,17 @@ const UploadTrack = ({ onUploadComplete, open: controlledOpen, onOpenChange }: U
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = (value: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(value);
-    } else {
-      setInternalOpen(value);
-    }
+    if (onOpenChange) onOpenChange(value);
+    else setInternalOpen(value);
   };
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [bpm, setBpm] = useState<string>("");
+  const [musicalKey, setMusicalKey] = useState<string>("");
+  const [energyLevel, setEnergyLevel] = useState<string>("");
 
   const handleUpload = async () => {
     if (!file || !title || !artist) {
@@ -46,45 +48,31 @@ const UploadTrack = ({ onUploadComplete, open: controlledOpen, onOpenChange }: U
     }
 
     setLoading(true);
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Необходима авторизация");
 
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('tracks')
-        .upload(filePath, file);
 
+      const { error: uploadError } = await supabase.storage
+        .from("tracks")
+        .upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('tracks')
-        .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage.from("tracks").getPublicUrl(filePath);
 
-      // Upload cover if provided
-      let coverUrl = null;
+      let coverUrl: string | null = null;
       if (coverFile) {
-        const coverExt = coverFile.name.split('.').pop();
+        const coverExt = coverFile.name.split(".").pop();
         const coverPath = `${user.id}/cover_${Date.now()}.${coverExt}`;
-        
-        const { error: coverError } = await supabase.storage
-          .from('covers')
-          .upload(coverPath, coverFile);
-
+        const { error: coverError } = await supabase.storage.from("covers").upload(coverPath, coverFile);
         if (!coverError) {
-          const { data: { publicUrl: coverPublicUrl } } = supabase.storage
-            .from('covers')
-            .getPublicUrl(coverPath);
-          coverUrl = coverPublicUrl;
+          const { data: { publicUrl: cu } } = supabase.storage.from("covers").getPublicUrl(coverPath);
+          coverUrl = cu;
         }
       }
 
-      // Get audio duration with timeout and error handling
       const audio = new Audio();
       const objectUrl = URL.createObjectURL(file);
       audio.src = objectUrl;
@@ -96,54 +84,36 @@ const UploadTrack = ({ onUploadComplete, open: controlledOpen, onOpenChange }: U
             audio.onloadedmetadata = null;
             reject(new Error("Не удалось определить длительность аудио (таймаут)"));
           }, 8000);
-
-          audio.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error("Ошибка при чтении аудиофайла"));
-          };
-
-          audio.onloadedmetadata = () => {
-            clearTimeout(timeout);
-            resolve(audio.duration);
-          };
+          audio.onerror = () => { clearTimeout(timeout); reject(new Error("Ошибка при чтении аудиофайла")); };
+          audio.onloadedmetadata = () => { clearTimeout(timeout); resolve(audio.duration); };
         });
       } finally {
         URL.revokeObjectURL(objectUrl);
       }
 
-      // Insert track record
-      const { error: insertError } = await supabase
-        .from('tracks')
-        .insert({
-          user_id: user.id,
-          title,
-          artist,
-          duration: Math.floor(duration),
-          file_path: publicUrl,
-          cover_color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-          cover_url: coverUrl,
-        });
-
+      const { error: insertError } = await supabase.from("tracks").insert({
+        user_id: user.id,
+        title,
+        artist,
+        duration: Math.floor(duration),
+        file_path: publicUrl,
+        cover_color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+        cover_url: coverUrl,
+        bpm: bpm ? parseInt(bpm, 10) : null,
+        musical_key: musicalKey || null,
+        energy_level: energyLevel ? parseInt(energyLevel, 10) : null,
+      });
       if (insertError) throw insertError;
 
-      toast({
-        title: "Трек загружен",
-        description: "Ваш трек успешно добавлен",
-      });
+      toast({ title: "Трек загружен", description: "Ваш трек успешно добавлен" });
 
-      setTitle("");
-      setArtist("");
-      setFile(null);
-      setCoverFile(null);
+      setTitle(""); setArtist(""); setFile(null); setCoverFile(null);
+      setBpm(""); setMusicalKey(""); setEnergyLevel("");
       setOpen(false);
       onUploadComplete?.();
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast({
-        title: "Ошибка загрузки",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Ошибка загрузки", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -152,57 +122,57 @@ const UploadTrack = ({ onUploadComplete, open: controlledOpen, onOpenChange }: U
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="telegram-button w-full">
+        <Button className="telegram-button w-full bg-gradient-to-r from-[hsl(var(--neon-blue))] to-[hsl(var(--neon-pink))] text-white">
           <Upload className="h-4 w-4 mr-2" />
           Загрузить трек
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Загрузка трека</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
             <Label htmlFor="title">Название</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Введите название трека"
-            />
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Введите название трека" />
           </div>
           <div>
             <Label htmlFor="artist">Исполнитель</Label>
-            <Input
-              id="artist"
-              value={artist}
-              onChange={(e) => setArtist(e.target.value)}
-              placeholder="Введите имя исполнителя"
-            />
+            <Input id="artist" value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Введите имя исполнителя" />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <Label htmlFor="bpm">BPM</Label>
+              <Input id="bpm" type="number" value={bpm} onChange={(e) => setBpm(e.target.value)} placeholder="128" />
+            </div>
+            <div>
+              <Label>Key</Label>
+              <Select value={musicalKey} onValueChange={setMusicalKey}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {CAMELOT_KEYS.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Energy</Label>
+              <Select value={energyLevel} onValueChange={setEnergyLevel}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5].map((e) => <SelectItem key={e} value={String(e)}>{e}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div>
             <Label htmlFor="file">Аудиофайл</Label>
-            <Input
-              id="file"
-              type="file"
-              accept="audio/*"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
+            <Input id="file" type="file" accept="audio/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>
           <div>
             <Label htmlFor="cover">Обложка (опционально)</Label>
-            <Input
-              id="cover"
-              type="file"
-              accept="image/*"
-              onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-            />
+            <Input id="cover" type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} />
           </div>
-          <Button
-            onClick={handleUpload}
-            disabled={loading}
-            className="w-full"
-          >
+          <Button onClick={handleUpload} disabled={loading} className="w-full">
             {loading ? "Загрузка..." : "Загрузить"}
           </Button>
         </div>
