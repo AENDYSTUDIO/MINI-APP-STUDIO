@@ -239,6 +239,13 @@ const Auth = () => {
             Войти через Google
           </Button>
 
+          <div className="mt-3">
+            <TelegramLoginButton
+              botUsername="aendy_studio_bot"
+              onSuccess={() => navigate("/")}
+            />
+          </div>
+
           <div className="mt-4 text-center text-sm">
             <button
               type="button"
