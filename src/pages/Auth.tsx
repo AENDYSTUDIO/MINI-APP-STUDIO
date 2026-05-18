@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Music2 } from "lucide-react";
+import { Music2, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { isTelegramWebApp } from "@/lib/telegram";
 import { lovable } from "@/integrations/lovable";
@@ -152,7 +152,17 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md border-border/40 bg-card/50 backdrop-blur">
+      <Card className="w-full max-w-md border-border/40 bg-card/50 backdrop-blur relative">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="absolute left-2 top-2 gap-1 text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          На главную
+        </Button>
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <Music2 className="h-12 w-12 text-primary" />
