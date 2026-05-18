@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Music2 } from "lucide-react";
 import { z } from "zod";
 import { isTelegramWebApp } from "@/lib/telegram";
+import { lovable } from "@/integrations/lovable";
 
 const emailSchema = z.string().email("Некорректный email");
 const passwordSchema = z.string().min(6, "Пароль должен быть не менее 6 символов");
