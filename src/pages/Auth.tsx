@@ -10,6 +10,7 @@ import { Music2 } from "lucide-react";
 import { z } from "zod";
 import { isTelegramWebApp } from "@/lib/telegram";
 import { lovable } from "@/integrations/lovable";
+import { TelegramLoginButton } from "@/components/TelegramLoginButton";
 
 const emailSchema = z.string().email("Некорректный email");
 const passwordSchema = z.string().min(6, "Пароль должен быть не менее 6 символов");
@@ -237,6 +238,13 @@ const Auth = () => {
             </svg>
             Войти через Google
           </Button>
+
+          <div className="mt-3">
+            <TelegramLoginButton
+              botUsername="aendy_studio_bot"
+              onSuccess={() => navigate("/")}
+            />
+          </div>
 
           <div className="mt-4 text-center text-sm">
             <button
