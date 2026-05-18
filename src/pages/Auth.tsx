@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Music2, ArrowLeft } from "lucide-react";
+import { Music2, ArrowLeft, Send } from "lucide-react";
 import { z } from "zod";
 import { isTelegramWebApp } from "@/lib/telegram";
 import { lovable } from "@/integrations/lovable";
@@ -255,6 +255,20 @@ const Auth = () => {
               onSuccess={() => navigate("/")}
             />
           </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mt-3"
+            onClick={() => {
+              const startParam = new URLSearchParams(window.location.search).get("start") || "auth";
+              const url = `https://t.me/aendy_studio_bot/app?startapp=${encodeURIComponent(startParam)}`;
+              window.open(url, "_blank");
+            }}
+          >
+            <Send className="h-4 w-4" />
+            Открыть в Telegram
+          </Button>
 
           <div className="mt-4 text-center text-sm">
             <button
