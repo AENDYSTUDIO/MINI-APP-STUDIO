@@ -256,6 +256,20 @@ const Auth = () => {
             />
           </div>
 
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mt-3"
+            onClick={() => {
+              const startParam = new URLSearchParams(window.location.search).get("start") || "auth";
+              const url = `https://t.me/aendy_studio_bot/app?startapp=${encodeURIComponent(startParam)}`;
+              window.open(url, "_blank");
+            }}
+          >
+            <Send className="h-4 w-4" />
+            Открыть в Telegram
+          </Button>
+
           <div className="mt-4 text-center text-sm">
             <button
               type="button"
